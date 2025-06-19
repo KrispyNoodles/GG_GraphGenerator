@@ -9,6 +9,9 @@ async def handle_message(message: cl.Message):
 
     messages = []
 
+    # creating a dict to store each dict of pdf (can be placed in pdf to csv to be stored in a db locally?)
+    pdf_dict = {}   
+
     # Checking if there is a pdf attached to the message
     if message.elements:
 
@@ -23,7 +26,19 @@ async def handle_message(message: cl.Message):
 
                 # converting the pdf into excel
                 # the files are only created temporarily from the covnersation
-                await main_pdf_to_csv(pdf_file.path)
+                # retrieivng the summary text to print it
+                summary = await main_pdf_to_csv(pdf_file.path)
+
+                # sending the uyser the summary of which tables that are able to be plotted
+                # have to be converted to string to be printed nicely
+                summary_string = summary.to_markdown(index=False)
+                summary_statement = f"The tables available to plot graphs are:\n\n{summary_string}"
+
+                messages.append(AIMessage(content=summary_statement))
+
+                # sending the user an excel sheet to be downloaded to view the current data extracted and to be interacted 
+                # before further choosing which graph it wishes to select to be plotted
+                await cl.Message(content=summary_statement).send()
 
                 processed_files.append(pdf_file.name)
 
@@ -37,7 +52,7 @@ async def handle_message(message: cl.Message):
     
     user_input = message.content
 
-    system_prompt = AIMessage(content="You are a chatbot that speaks in cat language")
+    system_prompt = AIMessage(content="You are a chatbot that helps to plot graphs")
 
     response = llm.invoke([system_prompt,HumanMessage(content=user_input)])
 
@@ -45,5 +60,5 @@ async def handle_message(message: cl.Message):
     user_request = "please plot the most appropriate data viz this table"
     selected_table = "Unnamed_Table_f0fa025a_1"
 
-    main_csv_to_graph(excel_file_path, user_request, selected_table)
+    # main_csv_to_graph(excel_file_path, user_request, selected_table)
     await cl.Message(content=response.content).send()

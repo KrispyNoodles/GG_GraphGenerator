@@ -96,3 +96,63 @@ def process_image(image_path):
     response = llm.invoke([message])
 
     return response.text()
+
+# getting the a mini LLM to read the data
+from langchain_core.messages import AIMessage
+
+
+from config import llm_mini
+
+# function that processes the csv file
+def name_determiner(csv_file):
+    
+    main_prompt = table_usefulness_prompt(csv_file)
+    main_prompt = AIMessage(content=main_prompt)
+   
+    response = llm_mini.invoke([main_prompt])
+
+    return response.content
+    ## True and false
+    # if response contains True generate a table name from the csv data
+
+    # else response contains false, remove from the dict
+
+def table_usefulness_prompt(csv_file):
+    return f"""You are an intelligent assistant. Your task is to determine whether the following CSV data is useful.
+
+    - If the table contains structured, meaningful data that could be visualized or analyzed, respond with: TRUE
+    - If the table appears empty, unstructured, repetitive, or non-informative, respond with: FALSE
+    - Respond with only one word: TRUE or FALSE — no explanation, punctuation, or extra content.
+
+    CSV Sample:
+    {csv_file}
+    """
+
+def table_name_gnereator_prompt(csv_file):
+
+    # retrieving the first 3 rows only so as to not feed the entire csv into the gpt model
+    csv_lines = csv_file.strip().splitlines()
+    csv_sample = "\n".join(csv_lines[:4]) 
+
+    return f"""
+    You are a smart assistant. Based on the following CSV sample, generate a short, meaningful name for the table.
+
+    Instructions:
+    - Respond with only the name — no explanation, no punctuation, and no formatting.
+    - You may use spaces and line breaks freely in your response where appropriate.
+    - Preserve the format and indentation of any input text shown.
+
+    CSV Sample:
+    {csv_sample}
+
+    Table name:"""
+
+# function that generates a name
+def name_generator(csv_file):
+    
+    main_prompt = table_name_gnereator_prompt(csv_file)
+    main_prompt = AIMessage(content=main_prompt)
+
+    response = llm_mini.invoke([main_prompt])
+
+    return response.content

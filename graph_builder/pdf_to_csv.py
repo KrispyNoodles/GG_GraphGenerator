@@ -5,6 +5,7 @@ from io import StringIO
 from .utils import cropping_table, process_image
 from azure.ai.documentintelligence.models import AnalyzeResult
 from config import document_intelligence_client
+from .utils import name_determiner, name_generator
 
 ## my own pdf
 # pdf_path = "./dataset/ESD testing report and cert 2023.pdf"
@@ -20,16 +21,20 @@ async def main_pdf_to_csv(pdf_path):
     table_dict = {}
 
     ## Document Intelligence
-    with open(pdf_path, "rb") as f:
-        poller = document_intelligence_client.begin_analyze_document("prebuilt-layout", body=f)
-    result: AnalyzeResult = poller.result()
+    try:
+        with open(pdf_path, "rb") as f:
+            poller = document_intelligence_client.begin_analyze_document("prebuilt-layout", body=f)
+        result: AnalyzeResult = poller.result()
+
+    except Exception as e:
+        print(f"❌ Unexpected error: {e}")
 
     for i in result.tables:
 
         # retrieving the page_number_variable
         table_page = i.bounding_regions[0].page_number
 
-        # if rowcount or columncount less than 3 then do not add them in
+        # if rowcount or columncount less than 2 then do not add them in
         if i.row_count <= 2 or i.column_count <= 2:
             continue
 
@@ -70,6 +75,29 @@ async def main_pdf_to_csv(pdf_path):
         response = process_image(image_path)
         table_dict[graph_name]["csv_data"] = response
 
+    
+    # Checking name and renaming function
+    for graph_name in list(table_dict):
+        csv_file = table_dict[graph_name]["csv_data"]
+
+        response = name_determiner(csv_file)
+
+        # checking if it is useful
+        if "true" in response.lower():
+            print("true")
+            new_name = name_generator(csv_file)
+
+            table_dict[graph_name]["full_name"] = new_name
+            print(new_name)
+
+        # it is not useful
+        else: 
+            # remove from dict
+            print("false")
+            
+            # removing the graph_name from the dict
+            table_dict.pop(graph_name, None)
+
     # Storing the excel
     with pd.ExcelWriter(output_excel_path, engine="openpyxl") as writer:
 
@@ -91,5 +119,10 @@ async def main_pdf_to_csv(pdf_path):
             df = pd.read_csv(StringIO(csv_text.strip()))
             df.to_excel(writer, sheet_name=sheet_name.strip(), index=False)
 
+    # printing the summary table
+    # Load the summary sheet back and print it
+    summary = pd.read_excel(output_excel_path, sheet_name="Summary", engine="openpyxl")
+
+    return summary
 # calling the function
 # main(pdf_path, output_excel_path)

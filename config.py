@@ -27,3 +27,16 @@ ADI_ENDPOINT=config.get("ADI_ENDPOINT")
 document_intelligence_client  = DocumentIntelligenceClient(
     endpoint=ADI_ENDPOINT, credential=AzureKeyCredential(ADI_KEY)
 )
+
+
+API_MINI_KEY=config.get("API_MINI_KEY")
+API_MINI_ENDPOINT=config.get("API_MINI_ENDPOINT")
+API_MINI_MODEL=config.get("API_MINI_MODEL")
+
+# Initialize the 4o mini LLM
+llm_mini = AzureChatOpenAI(
+                model=API_MINI_MODEL, 
+                openai_api_version="2024-12-01-preview",
+                api_key= API_MINI_KEY,
+                azure_endpoint=API_MINI_ENDPOINT
+                )

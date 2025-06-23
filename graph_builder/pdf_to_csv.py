@@ -27,7 +27,13 @@ async def main_pdf_to_csv(pdf_path):
         result: AnalyzeResult = poller.result()
 
     except Exception as e:
-        print(f"❌ Unexpected error: {e}")
+    
+        # returning a dataframe contianing the error
+        my_string = f"❌ Unexpected error: {e}"
+        df = pd.DataFrame(["Unexpected Error with reading the PDF"], columns=["content"])
+
+        print(my_string)
+        return df
 
     for i in result.tables:
 

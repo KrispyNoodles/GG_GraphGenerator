@@ -9,6 +9,9 @@ async def handle_message(message: cl.Message):
 
     messages = []
 
+    system_prompt = AIMessage(content="You are a chatbot that helps to plot graphs")
+    messages.append(system_prompt)
+
     # creating a dict to store each dict of pdf (can be placed in pdf to csv to be stored in a db locally?)
     pdf_dict = {}   
 
@@ -50,11 +53,11 @@ async def handle_message(message: cl.Message):
 
         await cl.Message(content=f"These files: {total_files} have been processed").send()
     
+    # adding the user's message
     user_input = message.content
+    messages.append(HumanMessage(content=user_input))
 
-    system_prompt = AIMessage(content="You are a chatbot that helps to plot graphs")
-
-    response = llm.invoke([system_prompt,HumanMessage(content=user_input)])
+    response = llm.invoke(messages)
 
     excel_file_path = "/home/ljunfeng/prototyping/pdf_to_graph/dataset/D22000797 Bonder K-NET 11Aug23/extracted_tables.xlsx"
     user_request = "please plot the most appropriate data viz this table"

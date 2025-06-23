@@ -47,7 +47,7 @@ def get_graph_prompt(table_name):
     2. Definition of the input dataframe.
     3. The code to create the specific graph.
     4. A call to the code to generate the graph.
-    5. Save the graph as '{table_name}.png'
+    5. Save the graph as 'graph.png'
     ## END CODE
     """
 
@@ -65,8 +65,10 @@ def generate_code(dataframe, user_request, table_name):
         
         code = extract_code_from_response(response.content)
         
-        print(f"THIS IS THE CODE BEING RUN: {code}")
         exec(code)
+        return code
+
+    return "Graph not managed to be generated"   
 
 # checking for code needs to be extracted
 def extract_code_from_response(text):

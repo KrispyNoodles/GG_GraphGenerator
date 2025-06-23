@@ -2,7 +2,19 @@ import chainlit as cl
 from config import llm
 from langchain.schema import HumanMessage, AIMessage
 from graph_builder.pdf_to_csv import main_pdf_to_csv
-from graph_builder.csv_to_graph import main_csv_to_graph
+
+# rebuild the retriever after it has been stored
+from custom_retriever import retriever_tool
+from langgraph.prebuilt import create_react_agent
+from langgraph.checkpoint.memory import MemorySaver
+
+
+memory = MemorySaver()
+
+tools = [retriever_tool]
+
+agent_executor = create_react_agent(llm, tools, checkpointer=memory, debug=False)
+
 
 @cl.on_message
 async def handle_message(message: cl.Message):
@@ -30,7 +42,7 @@ async def handle_message(message: cl.Message):
                 # converting the pdf into excel
                 # the files are only created temporarily from the covnersation
                 # retrieivng the summary text to print it
-                summary = await main_pdf_to_csv(pdf_file.path)
+                summary = await main_pdf_to_csv(pdf_file.path)        
 
                 # sending the uyser the summary of which tables that are able to be plotted
                 # have to be converted to string to be printed nicely
@@ -54,14 +66,40 @@ async def handle_message(message: cl.Message):
         await cl.Message(content=f"These files: {total_files} have been processed").send()
     
     # adding the user's message
-    user_input = message.content
-    messages.append(HumanMessage(content=user_input))
+    messages.append(HumanMessage(content=message.content))
 
-    response = llm.invoke(messages)
+    response = agent_executor.invoke(    
+        {"messages": messages},
+        config={"configurable": {"thread_id": "session-1"}}
+    )
+    
+    output = response["messages"][-1].content
 
-    excel_file_path = "/home/ljunfeng/prototyping/pdf_to_graph/dataset/D22000797 Bonder K-NET 11Aug23/extracted_tables.xlsx"
-    user_request = "please plot the most appropriate data viz this table"
-    selected_table = "Unnamed_Table_f0fa025a_1"
+    # if graph found in output send it
+    if "graph.png" in output:
 
-    # main_csv_to_graph(excel_file_path, user_request, selected_table)
-    await cl.Message(content=response.content).send()
+        print("graph sent")
+
+        # with open("graph.png", "rb") as f:
+        #     img_bytes = f.read()
+
+        output.replace("(sandbox:/mnt/data/graph.png)","(graph.png)")
+        # await cl.Image(
+        #                 name="graph.png",
+        #                 content=img_bytes,
+        #                 display="inline"
+        #             ).send(for_id=message.id)
+        
+        await cl.Message(content=output).send()
+        
+    else:
+        print("graph not sent")
+        await cl.Message(content=output).send()
+
+    # it is not updating the color because the retriever is the one generating the image
+    
+    print(f"repsonse forom llmis  {output}")
+    messages.append(output)
+
+
+

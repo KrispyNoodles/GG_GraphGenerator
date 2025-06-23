@@ -16,7 +16,7 @@ from .utils import name_determiner, name_generator
 async def main_pdf_to_csv(pdf_path):
 
     # output of excel sheet
-    output_excel_path = pdf_path.replace(".pdf","") + "/extracted_tables.xlsx"
+    output_excel_path = "./extracted_tables.xlsx"
 
     table_dict = {}
 

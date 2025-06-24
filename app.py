@@ -4,7 +4,7 @@ from langchain.schema import HumanMessage, AIMessage
 from graph_builder.pdf_to_csv import main_pdf_to_csv
 
 # rebuild the retriever after it has been stored
-from custom_retriever import retriever_tool
+from custom_retriever import excel_to_df, create_retriever
 from langgraph.prebuilt import create_react_agent
 from langgraph.checkpoint.memory import MemorySaver
 
@@ -14,6 +14,10 @@ from prompts import system_prompt
 
 
 memory = MemorySaver()
+
+# retrieving the excel
+document_array = excel_to_df("/home/ljunfeng/prototyping/extracted_tables.xlsx")
+retriever_tool = create_retriever(document_array)
 
 tools = [retriever_tool]
 

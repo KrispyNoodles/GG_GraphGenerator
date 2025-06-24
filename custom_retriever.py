@@ -35,10 +35,6 @@ def excel_to_df(excel_file_path):
     return document_array
 
 
-document_array = excel_to_df("/home/ljunfeng/prototyping/extracted_tables.xlsx")
-retriever = TFIDFRetriever.from_documents(document_array, k=1)
-
-
 from typing import List
 
 from langchain_core.callbacks import CallbackManagerForRetrieverRun
@@ -48,6 +44,7 @@ from graph_builder.csv_to_graph import generate_code
 
 
 class CustomTableRetriever(BaseRetriever):
+    base_retriever: BaseRetriever
     """
     A custom retriever that returns a code string to generate a visualization 
     based on the most relevant table retrieved for a user's query.
@@ -67,9 +64,9 @@ class CustomTableRetriever(BaseRetriever):
     def _get_relevant_documents(
         self, query: str, *, run_manager: CallbackManagerForRetrieverRun
     ) -> List[Document]:
-
+        
         # retrieving the specific searctr
-        result = retriever.invoke(query)
+        result = self.base_retriever.invoke(query)
 
         # if results cant be found
         if not result:
@@ -89,10 +86,17 @@ class CustomTableRetriever(BaseRetriever):
         # sending the code that was ran back to the llm
         return [Document(page_content=code_to_be_run, metadata={"table_name": table_name})]
     
-custom_retriever = CustomTableRetriever(base_retriever=retriever)
 
-retriever_tool = create_retriever_tool(
-    retriever=custom_retriever,
-    name="custom_table_code_runner",
-    description="Searches for the relevant table and returns visualization code run based on user's query."
-)
+def create_retriever(document_array):
+
+    retriever = TFIDFRetriever.from_documents(document_array, k=1)
+        
+    custom_retriever = CustomTableRetriever(base_retriever=retriever)
+
+    retriever_tool = create_retriever_tool(
+        retriever=custom_retriever,
+        name="custom_table_code_runner",
+        description="Searches for the relevant table and returns visualization code run based on user's query."
+    )
+
+    return retriever_tool

@@ -34,6 +34,7 @@ def get_graph_prompt(table_name):
     - Use `matplotlib` only for display and layout enhancements.
     - Include an appropriate title and legend if needed.
     - Do not create any functions
+    - Plot only a single graph
 
     Format your response exactly as follows:
     ## START CODE

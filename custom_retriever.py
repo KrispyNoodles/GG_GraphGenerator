@@ -48,15 +48,19 @@ from graph_builder.csv_to_graph import generate_code
 
 
 class CustomTableRetriever(BaseRetriever):
-    """A toy retriever that contains the top k documents that contain the user query.
+    """
+    A custom retriever that returns a code string to generate a visualization 
+    based on the most relevant table retrieved for a user's query.
 
-    This retriever only implements the sync method _get_relevant_documents.
+    This retriever uses a base retriever (e.g., TFIDFRetriever) to locate the most 
+    relevant table from preloaded documents. It then generates Python code using 
+    the associated DataFrame and user query.
 
-    If the retriever were to involve file access or network access, it could benefit
-    from a native async implementation of `_aget_relevant_documents`.
+    Only the synchronous method `_get_relevant_documents` is implemented. 
+    If the retrieval logic involves I/O operations (e.g., file or network access), 
+    implementing the asynchronous `_aget_relevant_documents` may provide performance benefits.
 
-    As usual, with Runnables, there's a default async implementation that's provided
-    that delegates to the sync implementation running on another thread.
+    The default async interface will still work by executing the sync method in a thread.
     """
     
     # the function that retrieves the code

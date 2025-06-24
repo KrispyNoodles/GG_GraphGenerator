@@ -80,8 +80,8 @@ async def handle_message(message: cl.Message):
 
     print(f"repsonse forom LLM is: {output}")
 
-    # if graph found in output send it
-    if "graph.png" in output:
+    # if graph code found in output send it
+    if "import" in output and "plt" in output:
 
         # a function that seperates the python file and the text
         code_block, response_text = extract_code_and_response(output)

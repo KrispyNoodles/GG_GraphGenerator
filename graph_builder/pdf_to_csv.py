@@ -125,5 +125,3 @@ async def main_pdf_to_csv(pdf_path):
     summary = pd.read_excel(output_excel_path, sheet_name="Summary", engine="openpyxl")
 
     return summary
-# calling the function
-# main(pdf_path, output_excel_path)

@@ -65,6 +65,18 @@ async def handle_message(message: cl.Message):
                 # before further choosing which graph it wishes to select to be plotted
                 await cl.Message(content=summary_statement).send()
 
+                # adding a file that sends the excel file to the user
+                excel_file = [
+                            cl.File(
+                                name=f"excel_{pdf_file.name}.xlsx",
+                                path=f"extracted_tables.xlsx",
+                                display="inline",
+                            ),
+                        ]
+                await cl.Message(
+                    content="The file is available for download below.", elements=excel_file
+                ).send()
+
                 processed_files.append(pdf_file.name)
 
         total_files = (", ".join(f"{name}" for name in processed_files))

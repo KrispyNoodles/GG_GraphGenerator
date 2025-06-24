@@ -12,11 +12,11 @@ from graph_builder.csv_to_graph import extract_code_and_response
 
 from prompts import system_prompt
 
-
 memory = MemorySaver()
 
-# retrieving the excel
-document_array = excel_to_df("/home/ljunfeng/prototyping/extracted_tables.xlsx")
+# initializing the excel
+output_excel_path = "/home/ljunfeng/GG_GraphGenerator/extracted_tables.xlsx"
+document_array = excel_to_df(output_excel_path)
 retriever_tool = create_retriever(document_array)
 
 tools = [retriever_tool]
@@ -25,6 +25,8 @@ agent_executor = create_react_agent(llm, tools, checkpointer=memory, debug=False
 
 @cl.on_message
 async def handle_message(message: cl.Message):
+
+    global agent_executor
 
     messages = []
 
@@ -51,6 +53,12 @@ async def handle_message(message: cl.Message):
                 # retrieivng the summary text to print it
                 summary = await main_pdf_to_csv(pdf_file.path)        
 
+                # rebuild the agent
+                document_array = excel_to_df(output_excel_path)
+                retriever_tool = create_retriever(document_array)
+                tools = [retriever_tool]
+                agent_executor = create_react_agent(llm, tools, checkpointer=memory, debug=False)
+
                 # sending the uyser the summary of which tables that are able to be plotted
                 # have to be converted to string to be printed nicely
                 summary_string = summary.to_markdown(index=False)
@@ -72,40 +80,39 @@ async def handle_message(message: cl.Message):
 
         await cl.Message(content=f"These files: {total_files} have been processed").send()
     
-    # adding the user's message
-    messages.append(HumanMessage(content=message.content))
-
-    response = agent_executor.invoke(    
-        {"messages": messages},
-        config={"configurable": {"thread_id": "session-1"}}
-    )
-    
-    output = response["messages"][-1].content
-
-    print(f"repsonse forom LLM is: {output}")
-
-    # if graph code found in output send it
-    if "import" in output and "plt" in output:
-
-        # a function that seperates the python file and the text
-        code_block, response_text = extract_code_and_response(output)
-        exec(code_block)
-
-        print("graph sent")
-
-        image = cl.Image(path="graph.png", name="image1", display="inline")
-
-        # Attach the image to the message
-        await cl.Message(
-            content=response_text,
-            elements=[image],
-        ).send()
-        
     else:
-        print("graph not sent")
-        await cl.Message(content=output).send()
-    
-    messages.append(output)
 
+        # adding the user's message
+        messages.append(HumanMessage(content=message.content))
 
+        response = agent_executor.invoke(    
+            {"messages": messages},
+            config={"configurable": {"thread_id": "session-1"}}
+        )
+        
+        output = response["messages"][-1].content
 
+        print(f"repsonse forom LLM is: {output}")
+
+        # if graph code found in output send it
+        if "import" in output and "plt" in output:
+
+            # a function that seperates the python file and the text
+            code_block, response_text = extract_code_and_response(output)
+            exec(code_block)
+
+            print("graph sent")
+
+            image = cl.Image(path="graph.png", name="image1", display="inline")
+
+            # Attach the image to the message
+            await cl.Message(
+                content=response_text,
+                elements=[image],
+            ).send()
+            
+        else:
+            print("graph not sent")
+            await cl.Message(content=output).send()
+        
+        messages.append(output)

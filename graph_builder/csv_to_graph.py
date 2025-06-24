@@ -36,11 +36,6 @@ def get_graph_prompt(table_name):
     - Do not create any functions
 
     Format your response exactly as follows:
-
-    ## EXPLANATION
-    Provide a detailed explanation of your reasoning and the steps involved.
-    ## END EXPLANATION
-
     ## START CODE
     Include:
     1. All imports (if any).
@@ -48,7 +43,13 @@ def get_graph_prompt(table_name):
     3. The code to create the specific graph.
     4. A call to the code to generate the graph.
     5. Save the graph as 'graph.png'
+    6. do not incude ```python``` in this block.
     ## END CODE
+
+    ## RESPONSE
+    Provide the response to the user here
+    ## END RESPONSE
+
     """
 
 # User request feasibility + code generation
@@ -63,40 +64,26 @@ def generate_code(dataframe, user_request, table_name):
 
     if "import" in response.content and "plt" in response.content:
         
-        code = extract_code_from_response(response.content)
-        
-        exec(code)
-        return code
-
+        code_block, response_text = extract_code_and_response(response.content)
+        # print(f"code genereated is {code_block}")
+        # exec(code_block)
+        return code_block
+    
     return "Graph not managed to be generated"   
 
 # checking for code needs to be extracted
-def extract_code_from_response(text):
+# checking for code needs to be extracted
+def extract_code_and_response(text):
+    match = re.search(r"## START CODE\s*(.*?)\s*## END CODE\s*(.*)", text, re.DOTALL)
 
-    match = re.search(r"## START CODE\s*(.*?)\s*## END CODE", text, re.DOTALL)
     if match:
-        return match.group(1).strip()
+        code_block = match.group(1).strip()
+        response_text = match.group(2).strip()
+
+        # reformatting the tail_text
+        response_text = response_text.replace("## RESPONSE","").replace("## END RESPONSE","")
+
+        return code_block, response_text
     else:
         raise ValueError("Code block not found between '## START CODE' and '## END CODE'")
-
-def main_csv_to_graph(excel_file_path, user_request, selected_table):
-
-    xls = pd.ExcelFile(excel_file_path, engine="openpyxl")
-    list_of_tables = xls.sheet_names
-
-    for table_name in list_of_tables:
-        print(table_name)
-
-        if  table_name == selected_table:
-
-            current_df = pd.read_excel(xls, sheet_name=table_name)
-                
-            generate_code(current_df, user_request, table_name)
-
-
-# excel_file_path = "/home/ljunfeng/chainlit/pdf_to_graph/dataset/D22000797 Bonder K-NET 11Aug23/extracted_tables.xlsx"
-# user_request = "please plot the most appropriate data viz this table"
-# selected_table = "Unnamed_Table_f0fa025a_1"
-
-# main(excel_file_path, user_request, selected_table)
 

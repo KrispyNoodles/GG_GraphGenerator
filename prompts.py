@@ -32,6 +32,6 @@ Include:
 ## END CODE
 
 ## RESPONSE
-Provide the response to the user here
+Provide the response to the user here, do not include the code block here.
 ## END RESPONSE
 """

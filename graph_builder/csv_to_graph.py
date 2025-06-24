@@ -45,6 +45,7 @@ def get_graph_prompt(table_name):
     4. A call to the code to generate the graph.
     5. Save the graph as 'graph.png'
     6. do not incude ```python``` in this block.
+    7. include the table name to be {table_name}
     ## END CODE
 
     ## RESPONSE

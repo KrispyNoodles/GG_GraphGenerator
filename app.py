@@ -93,9 +93,13 @@ async def handle_message(message: cl.Message):
 
         # a function that seperates the python file and the text
         code_block, response_text = extract_code_and_response(output)
-        exec(code_block)
 
-        print("graph sent")
+        try:
+            exec(code_block)
+            print("graph sent")
+                    
+        except Exception as e:
+            print(f"There was a problem running the code to plot because of: {e}")        
 
         image = cl.Image(path="graph.png", name="image1", display="inline")
 

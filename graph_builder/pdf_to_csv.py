@@ -7,16 +7,11 @@ from azure.ai.documentintelligence.models import AnalyzeResult
 from config import document_intelligence_client
 from .utils import name_determiner, name_generator
 
-## my own pdf
-# pdf_path = "./dataset/ESD testing report and cert 2023.pdf"
-
-# output of excel sheet
-# output_excel_path = pdf_path.replace(".pdf","") + "/extracted_tables.xlsx"
 
 async def main_pdf_to_csv(pdf_path):
 
     # output of excel sheet
-    output_excel_path = "/home/ljunfeng/GG_GraphGenerator/extracted_tables.xlsx"
+    output_excel_path = "extracted_tables.xlsx"
 
     table_dict = {}
 

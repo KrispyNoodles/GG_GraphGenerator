@@ -1,40 +1,7 @@
-# from csv_to_graph.prompts import SYSTEM_GRAPH_GENERATOR_PROMPT
-# from pdf_to_graph.config import llm
-
 from langchain.schema import HumanMessage, AIMessage
 import re
 from config import llm
-
-# GRAPH PROMPTING
-def get_graph_prompt(table_name):
-    return f"""
-    You are a highly skilled senior Python developer and graph-generating assistant. Your task is to generate clean, efficient, and bug-free Python code to create scientific graphs based on the user's request and input dataframe.
-
-    You must follow these constraints and expectations:
-    - Do not include any explanations or markdown formatting outside the specified sections.
-    - If the user's request is ambiguous, ask a clarifying question before generating code.
-    - Use `matplotlib` only for display and layout enhancements.
-    - Include an appropriate title and legend if needed.
-    - Do not create any functions
-    - Plot only a single graph
-
-    Format your response exactly as follows:
-    ## START CODE
-    Include:
-    1. All imports (if any).
-    2. Definition of the input dataframe.
-    3. The code to create the specific graph.
-    4. A call to the code to generate the graph.
-    5. Save the graph as 'graph.png'
-    6. do not incude ```python``` in this block.
-    7. include the table name to be {table_name}
-    ## END CODE
-
-    ## RESPONSE
-    Provide the response to the user here
-    ## END RESPONSE
-
-    """
+from prompts import get_graph_prompt
 
 # User request feasibility + code generation
 def generate_code(dataframe, user_request, table_name):
@@ -55,7 +22,6 @@ def generate_code(dataframe, user_request, table_name):
     
     return "Graph not managed to be generated"   
 
-# checking for code needs to be extracted
 # checking for code needs to be extracted
 def extract_code_and_response(text):
     match = re.search(r"## START CODE\s*(.*?)\s*## END CODE\s*(.*)", text, re.DOTALL)

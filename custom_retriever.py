@@ -95,8 +95,8 @@ def create_retriever(document_array):
 
     retriever_tool = create_retriever_tool(
         retriever=custom_retriever,
-        name="custom_table_code_runner",
-        description="Searches for the relevant table and returns visualization code run based on user's query."
+        name="table_visualizer",
+        description="Retrieve the Python code to be visualized based on the user's request."
     )
 
     return retriever_tool

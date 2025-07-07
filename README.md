@@ -9,10 +9,12 @@ This repo has the capability to:
 
 ## 📈 Generate Professional Graphs
 <img src="https://github.com/user-attachments/assets/4cee24e7-ddfa-4443-a5eb-d33b384a8818" width="500"/>
+
 - Visualizes data clearly with customizable labels
 - Supports various chart types including bar, line, and scatter plots
 
 ## 🎨 Customize Plot Styles and Colors
 <img src="https://github.com/user-attachments/assets/01833b68-917f-41e2-93c0-e7065c204600" width="500"/>
+
 - Modify graph shapes, colors, and layout to fit your presentation style
 - Fine-tune visuals for reports, dashboards, or client deliverables

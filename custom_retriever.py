@@ -19,15 +19,15 @@ def excel_to_df(excel_file_path):
     for _, row in df.iterrows():
 
         # name of table being processed
-        table_name = row["table_name"]
-        print(f"Processing table: {row['full_name']}")
+        table_name = row["given_name"]
+        print(f"Processing table: {row['given_name']}")
 
         # dataframe of the 
         table_df = pd.read_excel(xls, sheet_name=table_name)
 
-        document_array.append(Document(page_content=row['full_name'],
-                            metadata={"table_name":table_name,
-                                        "page_no": row['page_no'],
+        document_array.append(Document(page_content=row['rename_name'],
+                            metadata={"table_hash":row["table_hash"],
+                                        "given_name": table_name,
                                         "dataframe": table_df
                                         })
                             )
@@ -40,7 +40,7 @@ from typing import List
 from langchain_core.callbacks import CallbackManagerForRetrieverRun
 from langchain_core.documents import Document
 from langchain_core.retrievers import BaseRetriever
-from graph_builder.csv_to_graph import generate_code
+from graph_builder.excel_to_graph import generate_code
 
 
 class CustomTableRetriever(BaseRetriever):

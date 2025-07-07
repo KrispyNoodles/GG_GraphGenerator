@@ -1,11 +1,11 @@
 import chainlit as cl
 from config import llm
 from langchain.schema import HumanMessage, AIMessage
-from graph_builder.pdf_to_csv import main_pdf_to_csv
+from graph_builder.formatted_excel import main_excel_to_formatted_excel
 from custom_retriever import excel_to_df, create_retriever
 from langgraph.prebuilt import create_react_agent
 from langgraph.checkpoint.memory import MemorySaver
-from graph_builder.csv_to_graph import extract_code_and_response
+from graph_builder.excel_to_graph import extract_code_and_response
 from prompts import system_prompt
 
 
@@ -33,19 +33,18 @@ async def handle_message(message: cl.Message):
     # Checking if there is a pdf attached to the message
     if message.elements:
 
-        processed_files = []
-
         # processing a pdf
-        for pdf_file in message.elements:
+        for excel_file in message.elements:
 
             # Verify the file is indeed a PDF
-            if pdf_file.mime == 'application/pdf':
-                print("Processing PDF", pdf_file.name)
+            if excel_file.mime in ['application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'application/vnd.ms-excel']:
+
+                print("Processing Excel", excel_file.name)
 
                 # converting the pdf into excel
                 # the files are only created temporarily from the covnersation
                 # retrieivng the summary text to print it
-                summary = await main_pdf_to_csv(pdf_file.path)        
+                summary = await main_excel_to_formatted_excel(excel_file.path)        
 
                 # rebuild the agent
                 document_array = excel_to_df(output_excel_path)
@@ -56,7 +55,7 @@ async def handle_message(message: cl.Message):
                 # sending the uyser the summary of which tables that are able to be plotted
                 # have to be converted to string to be printed nicely
                 summary_string = summary.to_markdown(index=False)
-                summary_statement = f"I have processed the PDF and extracted the following tables that are available for plotting: \n\n{summary_string}"
+                summary_statement = f"These are the tables found in my excel file: \n\n{summary_string}"
 
                 # adding as a human message instead to prevent the LLM from beign confused as to what it has said
                 messages.append(HumanMessage(content=summary_statement))
@@ -65,28 +64,6 @@ async def handle_message(message: cl.Message):
                 # before further choosing which graph it wishes to select to be plotted
                 await cl.Message(content=summary_statement).send()
 
-                # adding a file that sends the excel file to the user
-                excel_file = [
-                            cl.File(
-                                name=f"excel_{pdf_file.name}.xlsx",
-                                path=f"extracted_tables.xlsx",
-                                display="inline",
-                            ),
-                        ]
-                await cl.Message(
-                    content="The file is available for download below.", elements=excel_file
-                ).send()
-
-                processed_files.append(pdf_file.name)
-
-        total_files = (", ".join(f"{name}" for name in processed_files))
-
-        # Create an AI message indicating the file has been processed
-        user_process_msg = HumanMessage(content=f"I have uploaded {total_files}.")
-        messages.append(user_process_msg)
-
-        await cl.Message(content=f"These files: {total_files} have been processed").send()
-    
     
     # adding the user's message
     messages.append(HumanMessage(content=message.content))

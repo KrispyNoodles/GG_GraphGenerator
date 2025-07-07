@@ -16,19 +16,6 @@ llm = AzureChatOpenAI(
                 azure_endpoint=API_ENDPOINT
                 )
 
-from azure.core.credentials import AzureKeyCredential
-from azure.ai.documentintelligence import DocumentIntelligenceClient
-
-# Document Intelligence
-ADI_KEY=config.get("ADI_KEY")
-ADI_ENDPOINT=config.get("ADI_ENDPOINT")
-
-# Azure Document Intelligence
-document_intelligence_client  = DocumentIntelligenceClient(
-    endpoint=ADI_ENDPOINT, credential=AzureKeyCredential(ADI_KEY)
-)
-
-
 API_MINI_KEY=config.get("API_MINI_KEY")
 API_MINI_ENDPOINT=config.get("API_MINI_ENDPOINT")
 API_MINI_MODEL=config.get("API_MINI_MODEL")
